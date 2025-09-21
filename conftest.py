@@ -1,15 +1,21 @@
 import pytest
+from selene import browser
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selene import Browser, Config
-from tempfile import mkdtemp
 
-@pytest.fixture(scope="function")
+
+
+@pytest.fixture(scope="function", autouse=True)
+def configuring_browser(setup_browser):
+    browser.config.window_width = 1920
+    browser.config.window_height = 1080
+    browser.config.timeout = 10
+
+@pytest.fixture(scope="function", autouse=True)
 def setup_browser():
     options = Options()
-    options.add_argument(f"--user-data-dir={mkdtemp()}")  # уникальная папка профиля
-
-    capabilities = {
+    selenoid_capabilities = {
         "browserName": "chrome",
         "browserVersion": "128.0",
         "selenoid:options": {
@@ -17,13 +23,12 @@ def setup_browser():
             "enableVideo": True
         }
     }
-
+    options.capabilities.update(selenoid_capabilities)
     driver = webdriver.Remote(
-        command_executor="https://user1:1234@selenoid.autotests.cloud/wd/hub",
-        options=options,
-        desired_capabilities=capabilities
+        command_executor=f"https://user1:1234@selenoid.autotests.cloud/wd/hub",
+        options=options
     )
-
-    browser = Browser(Config(driver))
+    browser.config.driver = driver
     yield browser
+
     browser.quit()
