@@ -1,25 +1,36 @@
+from pathlib import Path
 import allure
-from allure_commons.types import AttachmentType
+import os
 
+SCREENSHOTS_DIR = Path("screenshots")
+LOGS_DIR = Path("logs")
+HTML_DIR = Path("html")
+VIDEO_DIR = Path("video")
 
-def add_screenshot(browser):
-    png = browser.driver.get_screenshot_as_png()
-    allure.attach(body=png, name='screenshot', attachment_type=AttachmentType.PNG, extension='.png')
+SCREENSHOTS_DIR.mkdir(exist_ok=True)
+LOGS_DIR.mkdir(exist_ok=True)
+HTML_DIR.mkdir(exist_ok=True)
+VIDEO_DIR.mkdir(exist_ok=True)
 
+def add_screenshot(browser, name="Screenshot"):
+    screenshot_file = SCREENSHOTS_DIR / "screenshot.png"
+    browser.screenshot(str(screenshot_file))  # сохраняем файл
+    allure.attach.file(screenshot_file, name=name, attachment_type=allure.attachment_type.PNG)
 
-def add_logs(browser):
-    log = "".join(f'{text}\n' for text in browser.driver.get_log(log_type='browser'))
-    allure.attach(log, 'browser_logs', AttachmentType.TEXT, '.log')
+def add_logs(browser, name="Browser Logs"):
+    log_file = LOGS_DIR / "browser.log"
+    logs = "\n".join(browser.driver.get_log("browser"))
+    log_file.write_text(logs, encoding="utf-8")
+    allure.attach.file(log_file, name=name, attachment_type=allure.attachment_type.TEXT)
 
+def add_html(browser, name="Page HTML"):
+    html_file = HTML_DIR / "page.html"
+    html_content = browser.driver.page_source
+    html_file.write_text(html_content, encoding="utf-8")
+    allure.attach.file(html_file, name=name, attachment_type=allure.attachment_type.HTML)
 
-def add_html(browser):
-    html = browser.driver.page_source
-    allure.attach(html, 'page_source', AttachmentType.HTML, '.html')
-
-
-def add_video(browser):
-    video_url = "https://selenoid.autotests.cloud/video/" + browser.driver.session_id + ".mp4"
-    html = "<html><body><video width='100%' height='100%' controls autoplay><source src='" \
-           + video_url \
-           + "' type='video/mp4'></video></body></html>"
-    allure.attach(html, 'video_' + browser.driver.session_id, AttachmentType.HTML, '.html')
+def add_video(browser, name="Test Video"):
+    video_file = VIDEO_DIR / "video.mp4"
+    # Здесь предполагается, что видео уже сохраняется Selenoid. Если нет, нужно скопировать файл
+    if video_file.exists():
+        allure.attach.file(video_file, name=name, attachment_type=allure.attachment_type.MP4)
