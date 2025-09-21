@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selene import Browser, Config
 
+from utils.attach import add_screenshot, add_logs, add_html, add_video
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -30,5 +31,10 @@ def setup_browser():
     )
     browser.config.driver = driver
     yield browser
+
+    add_screenshot(browser)
+    add_logs(browser)
+    add_html(browser)
+    add_video(browser)
 
     browser.quit()
