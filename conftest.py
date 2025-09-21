@@ -1,31 +1,29 @@
 import pytest
-
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selene import Browser, Config
-
 from utils import attach
+
 
 @pytest.fixture(scope='function')
 def setup_browser(request):
-    options = Options()
     selenoid_capabilities = {
         "browserName": "chrome",
-        "browserVersion": "128.0",
+        "browserVersion": "latest",   # всегда актуальная версия
         "selenoid:options": {
             "enableVNC": True,
             "enableVideo": True
         }
     }
-    options.capabilities.update(selenoid_capabilities)
+
     driver = webdriver.Remote(
-        command_executor=f"https://user1:1234@selenoid.autotests.cloud/wd/hub",
-        options=options
+        command_executor="https://user1:1234@selenoid.autotests.cloud/wd/hub",
+        desired_capabilities=selenoid_capabilities
     )
 
     browser = Browser(Config(driver))
     yield browser
 
+    # фиксация артефактов в Allure
     attach.add_screenshot(browser)
     attach.add_logs(browser)
     attach.add_html(browser)
