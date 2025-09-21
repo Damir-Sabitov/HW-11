@@ -1,47 +1,34 @@
 import pytest
-import tempfile
+from selene import browser
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selene import Browser, Config
+
 from utils import attach
 
-SELENOID_URL = "https://user1:1234@selenoid.autotests.cloud/wd/hub"
 
-@pytest.fixture(scope='function')
-def setup_browser(request):
-    # Создаём временную уникальную папку для user-data-dir
-    user_data_dir = tempfile.mkdtemp()
-
+@pytest.fixture(scope="function", autouse=True)
+def setup_browser():
     options = Options()
-    options.add_argument(f"--user-data-dir={user_data_dir}")  # уникальный профиль
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-extensions")
-    options.add_argument("--remote-allow-origins=*")
-
-    # Selenoid capabilities
-    capabilities = {
+    selenoid_capabilities = {
         "browserName": "chrome",
-        "browserVersion": "latest",
+        "browserVersion": "128.0",
         "selenoid:options": {
             "enableVNC": True,
             "enableVideo": True
         }
     }
-
+    options.capabilities.update(selenoid_capabilities)
     driver = webdriver.Remote(
-        command_executor=SELENOID_URL,
-        options=options,
-        desired_capabilities=capabilities
+        command_executor=f"https://user1:1234@selenoid.autotests.cloud/wd/hub",
+        options=options
     )
-
-    browser = Browser(Config(driver))
+    browser.config.driver = driver
     yield browser
 
-    # Сбор артефактов
     attach.add_screenshot(browser)
     attach.add_logs(browser)
     attach.add_html(browser)
     attach.add_video(browser)
+
 
     browser.quit()
