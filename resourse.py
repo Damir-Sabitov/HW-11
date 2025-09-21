@@ -1,5 +1,6 @@
 from selene import browser, be, have
 import os, calendar
+from pathlib import Path
 
 
 
@@ -57,8 +58,10 @@ class RegistrationPage:
             target.should(be.visible).should(be.clickable).click()
 
     def send_file(self,value):
-        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), value))
-        browser.element('#uploadPicture').send_keys(file_path)
+        file_path = Path(__file__).parent / value
+        if not file_path.exists():
+            raise FileNotFoundError(f"Файл {file_path} не найден.")
+        browser.element('#uploadPicture').send_keys(str(file_path))
 
     def fill_adress(self,value):
         browser.element('#currentAddress').type(value)
