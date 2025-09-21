@@ -9,7 +9,7 @@ def setup_browser():
     options = Options()
     options.add_argument(f"--user-data-dir={mkdtemp()}")  # уникальная папка профиля
 
-    selenoid_capabilities = {
+    capabilities = {
         "browserName": "chrome",
         "browserVersion": "128.0",
         "selenoid:options": {
@@ -17,11 +17,11 @@ def setup_browser():
             "enableVideo": True
         }
     }
-    options.capabilities.update(selenoid_capabilities)
 
     driver = webdriver.Remote(
         command_executor="https://user1:1234@selenoid.autotests.cloud/wd/hub",
-        options=options
+        options=options,
+        desired_capabilities=capabilities
     )
 
     browser = Browser(Config(driver))
