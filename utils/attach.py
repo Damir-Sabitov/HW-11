@@ -16,17 +16,20 @@ def add_html(browser):
     allure.attach(html, 'page_source', AttachmentType.HTML, '.html')
 
 def add_video(browser):
-    selenoid_url = os.getenv("SELENOID_URL")
-    video_url = f"https://{selenoid_url}/video/" + browser.driver.session_id + ".mp4"
+    # Внешний URL на Selenoid, доступный из браузера
+    selenoid_url = "selenoid.autotests.cloud"
+    session_id = browser.driver.session_id
+
+    video_url = f"https://{selenoid_url}/video/{session_id}.mp4"
+
     html = f"""
     <html>
       <body>
         <video width="100%" height="100%" controls autoplay>
           <source src="{video_url}" type="video/mp4">
-          Your browser does not support the video tag.
+          Your browser does not support video playback.
         </video>
-        <a href="{video_url}">Download video</a>
       </body>
     </html>
     """
-    allure.attach(html, 'video_' + browser.driver.session_id, AttachmentType.HTML, '.html')
+    allure.attach(html, f"video_{session_id}", AttachmentType.HTML, ".html")
